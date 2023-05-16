@@ -1,5 +1,5 @@
 import express, { Request, Response, Router } from 'express';
-import getCostpools from '../controllers/getCostpools';
+import getCostpools from '../controllers/getCostPools';
 
 const router: Router = express.Router();
 

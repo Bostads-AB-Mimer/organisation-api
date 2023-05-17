@@ -6,8 +6,7 @@ import userRoutes from './routes/userRoutes';
 import costPoolRoutes from './routes/costPoolRoutes';
 import responsibilityAreasRoutes from './routes/responsibilityAreasRoutes';
 import propertiesRoutes from './routes/propertiesRoutes';
-import auth from './middleware/auth'; // import the auth middleware
-
+import auth from './middleware/auth';
 const app = express();
 
 // Middleware

@@ -1,0 +1,8 @@
+-node_modules
+-src
+    -config
+        -db.ts
+    -controllers
+        -deleteResponsibilityRelationship.ts
+        -deleteUser.ts
+        -getCostPools.ts

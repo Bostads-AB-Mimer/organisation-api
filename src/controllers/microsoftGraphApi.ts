@@ -25,6 +25,7 @@ export interface User {
   jobTitle: string;
   businessPhones: string[];
   mail: string;
+  employeeId: string | null;
 }
 
 // Function to get the access token
@@ -53,7 +54,7 @@ export async function getAccessToken(): Promise<string | null> {
 export async function getUsers(): Promise<User[] | null> {
   try {
     let users: User[] = [];
-    let url = `https://graph.microsoft.com/v1.0/users?$select=id,displayName,giveName,surName,userPrincipalName,companyName,mobilePhone,officeLocation,jobTitle,mobilePhone,businessPhones,mail`;
+    let url = `https://graph.microsoft.com/v1.0/users?$select=id,displayName,giveName,surName,userPrincipalName,companyName,mobilePhone,officeLocation,jobTitle,mobilePhone,businessPhones,mail,employeeId`;
 
     const token: string | null = await getAccessToken();
 
@@ -66,9 +67,9 @@ export async function getUsers(): Promise<User[] | null> {
           },
         });
 
-        // Filter out the users that do not have "@mimer.nu" in their email.
-        const filteredUsers: User[] = response.data.value.filter((user: User) =>
-          user.userPrincipalName.endsWith('@mimer.nu')
+        // Filter out the users that do not have an employeeId
+        const filteredUsers: User[] = response.data.value.filter(
+          (user: User) => user.employeeId !== null
         );
         users = users.concat(filteredUsers);
 

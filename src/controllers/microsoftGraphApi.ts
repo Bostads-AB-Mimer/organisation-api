@@ -13,7 +13,7 @@ const credentials = {
 };
 
 // Define the type of user
-interface User {
+export interface User {
   id: string;
   displayName: string;
   giveName: string;

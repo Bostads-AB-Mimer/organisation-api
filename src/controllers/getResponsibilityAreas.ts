@@ -6,7 +6,7 @@ const getResponsibilityAreas = async (
   req: Request,
   res: Response
 ): Promise<void> => {
-  const kostnadsstalle: string | undefined = req.query.kostnadsstalle as string;
+  const costPool: string | undefined = req.query.costPool as string;
 
   const driver: Driver | undefined = await connectDB();
   if (!driver) {
@@ -16,41 +16,40 @@ const getResponsibilityAreas = async (
 
   const session: Session = driver.session();
 
-  if (kostnadsstalle) {
-    // Check if the kostnadsstalle exists
-    const kostnadsstalleQuery =
-      'MATCH (k:Kostnadsstalle) WHERE k.Kostnadsstalle = $kostnadsstalle RETURN k';
-    const kostnadsstalleResult = await session.run(kostnadsstalleQuery, {
-      kostnadsstalle,
+  if (costPool) {
+    // Check if the costPool exists
+    const costPoolQuery = 'MATCH (c:CostPool) WHERE c.id = $costPool RETURN c';
+    const costPoolResult = await session.run(costPoolQuery, {
+      costPool,
     });
 
-    if (kostnadsstalleResult.records.length === 0) {
-      res.status(400).json({ error: 'No such kostnadsstalle.' });
+    if (costPoolResult.records.length === 0) {
+      res.status(400).json({ error: 'No such costPool.' });
       session.close();
       return;
     }
 
     const query =
-      'MATCH (a:Ansvarsomrade)-[r]->(k:Kostnadsstalle) WHERE k.Kostnadsstalle = $kostnadsstalle RETURN a';
-    const result = await session.run(query, { kostnadsstalle });
+      'MATCH (ra:ResponsibilityArea)-[r]->(c:CostPool) WHERE c.id = $costPool RETURN ra';
+    const result = await session.run(query, { costPool });
     const records = result.records.map((record: Record) => {
-      const a = record.get('a');
+      const ra = record.get('ra');
       return {
-        id: a.identity.toNumber(),
-        ansvarsomrade: a.properties.Ansvarsomrade,
+        id: ra.identity.toNumber(),
+        responsibilityArea: ra.properties.id,
       };
     });
 
     session.close();
     res.json(records);
   } else {
-    const query = 'MATCH (a:Ansvarsomrade) RETURN a';
+    const query = 'MATCH (ra:ResponsibilityArea) RETURN ra';
     const result = await session.run(query);
     const records = result.records.map((record: Record) => {
-      const a = record.get('a');
+      const ra = record.get('ra');
       return {
-        id: a.identity.toNumber(),
-        ansvarsomrade: a.properties.Ansvarsomrade,
+        id: ra.identity.toNumber(),
+        responsibilityArea: ra.properties.id,
       };
     });
 

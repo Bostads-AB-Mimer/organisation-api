@@ -6,13 +6,13 @@ const postResponsibilityRelationship = async (
   req: Request,
   res: Response
 ): Promise<void> => {
-  const referensnummer: string | undefined = req.body.referensnummer;
-  const ansvarsomrade: string | undefined = req.body.ansvarsomrade;
+  const employeeId: string | undefined = req.body.employeeId;
+  const responsibilityArea: string | undefined = req.body.responsibilityArea;
 
-  if (!referensnummer || !ansvarsomrade) {
+  if (!employeeId || !responsibilityArea) {
     res
       .status(400)
-      .json({ error: 'Both referensnummer and ansvarsomrade are required.' });
+      .json({ error: 'Both employeeId and responsibilityArea are required.' });
     return;
   }
 
@@ -24,41 +24,44 @@ const postResponsibilityRelationship = async (
 
   const session: Session = driver.session();
   try {
-    const kvvNodeQuery = `MATCH (k:Kvartersvard) WHERE k.Referensnummer = $referensnummer RETURN count(k) as count`;
-    const kvvNodeResult = await session.run(kvvNodeQuery, { referensnummer });
-    const kvvNodeCount = kvvNodeResult.records[0].get('count').toNumber();
-    if (kvvNodeCount === 0) {
+    const userNodeQuery = `MATCH (u:User)-[:WORKS_AS]->(j:JobTitle) WHERE u.employeeId = $employeeId AND j.title="Kvartersvärd" RETURN count(u) as count`;
+    const userNodeResult = await session.run(userNodeQuery, { employeeId });
+    const userNodeCount = userNodeResult.records[0].get('count').toNumber();
+    if (userNodeCount === 0) {
       res.status(400).json({
         error:
-          'Kvartersvard node with the given referensnummer does not exist in the database.',
+          'User node with the given employeeId and working as Kvartersvärd does not exist in the database.',
       });
       return;
     }
 
-    const ansvarsomradeCountQuery = `MATCH (a:Ansvarsomrade) WHERE a.Ansvarsomrade = $ansvarsomrade RETURN count(a) as count`;
-    const ansvarsomradeResult = await session.run(ansvarsomradeCountQuery, {
-      ansvarsomrade,
-    });
-    const ansvarsomradeCount = ansvarsomradeResult.records[0]
+    const responsibilityAreaCountQuery = `MATCH (ra:ResponsibilityArea) WHERE ra.id = $responsibilityArea RETURN count(ra) as count`;
+    const responsibilityAreaResult = await session.run(
+      responsibilityAreaCountQuery,
+      {
+        responsibilityArea,
+      }
+    );
+    const responsibilityAreaCount = responsibilityAreaResult.records[0]
       .get('count')
       .toNumber();
-    if (ansvarsomradeCount === 0) {
+    if (responsibilityAreaCount === 0) {
       res.status(400).json({
         error:
-          'Ansvarsomrade node with the given ansvarsomrade does not exist in the database.',
+          'ResponsibilityArea node with the given id does not exist in the database.',
       });
       return;
     }
 
-    const createRelationshipQuery = `MATCH (k:Kvartersvard),(a:Ansvarsomrade)
-                                     WHERE k.Referensnummer = $referensnummer AND a.Ansvarsomrade = $ansvarsomrade
-                                     MERGE (k)-[:TILLHÖR]->(a)`;
+    const createRelationshipQuery = `MATCH (u:User)-[:WORKS_AS]->(j:JobTitle),(ra:ResponsibilityArea)
+                                     WHERE u.employeeId = $employeeId AND j.title="Kvartersvärd" AND ra.id = $responsibilityArea
+                                     MERGE (u)-[:BELONGS_TO]->(ra)`;
     await session.run(createRelationshipQuery, {
-      referensnummer,
-      ansvarsomrade,
+      employeeId,
+      responsibilityArea,
     });
     res.status(200).json({
-      message: `Relationship created between Kvartersvärds node with Referensnummer '${referensnummer}' and Ansvarsomrade with Ansvarsomrade '${ansvarsomrade}'.`,
+      message: `Relationship created between User with employeeId '${employeeId}' working as Kvartersvärd and ResponsibilityArea with id '${responsibilityArea}'.`,
     });
   } catch (error) {
     console.error('Unexpected error:', error);

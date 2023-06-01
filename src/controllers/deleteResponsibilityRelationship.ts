@@ -6,10 +6,13 @@ const deleteResponsibilityRelationship = async (
   req: Request,
   res: Response
 ): Promise<void> => {
-  const referensnummer: string | undefined = req.body.referensnummer;
+  const employeeId: string | undefined = req.body.employeeId;
+  const responsibilityArea: string | undefined = req.body.responsibilityArea;
 
-  if (!referensnummer) {
-    res.status(400).json({ error: 'Referensnummer is required.' });
+  if (!employeeId || !responsibilityArea) {
+    res
+      .status(400)
+      .json({ error: 'Both employeeId and responsibilityArea are required.' });
     return;
   }
 
@@ -21,30 +24,44 @@ const deleteResponsibilityRelationship = async (
 
   const session: Session = driver.session();
   try {
-    // Check if Kvartersvard node exists
-    let kvvCount = await session.run(
-      'MATCH (k:Kvartersvard) WHERE k.Referensnummer = $referensnummer RETURN count(k)',
-      { referensnummer }
-    );
-
-    if (kvvCount.records[0].get(0).toNumber() === 0) {
+    const userNodeQuery = `MATCH (u:User)-[:WORKS_AS]->(j:JobTitle) WHERE u.employeeId = $employeeId AND j.title="Kvartersvärd" RETURN count(u) as count`;
+    const userNodeResult = await session.run(userNodeQuery, { employeeId });
+    const userNodeCount = userNodeResult.records[0].get('count').toNumber();
+    if (userNodeCount === 0) {
       res.status(400).json({
         error:
-          'The node with the provided referensnummer does not exist in the database.',
+          'User node with the given employeeId and working as Kvartersvärd does not exist in the database.',
       });
       return;
     }
 
-    // Delete relationship
-    await session.run(
-      `MATCH (k:Kvartersvard)-[r:TILLHÖR]->(a:Ansvarsomrade)
-       WHERE k.Referensnummer = $referensnummer
-       DELETE r`,
-      { referensnummer }
+    const responsibilityAreaCountQuery = `MATCH (ra:ResponsibilityArea) WHERE ra.id = $responsibilityArea RETURN count(ra) as count`;
+    const responsibilityAreaResult = await session.run(
+      responsibilityAreaCountQuery,
+      {
+        responsibilityArea,
+      }
     );
+    const responsibilityAreaCount = responsibilityAreaResult.records[0]
+      .get('count')
+      .toNumber();
+    if (responsibilityAreaCount === 0) {
+      res.status(400).json({
+        error:
+          'ResponsibilityArea node with the given id does not exist in the database.',
+      });
+      return;
+    }
 
+    const deleteRelationshipQuery = `MATCH (u:User)-[r:BELONGS_TO]->(ra:ResponsibilityArea)
+                                     WHERE u.employeeId = $employeeId AND ra.id = $responsibilityArea
+                                     DELETE r`;
+    await session.run(deleteRelationshipQuery, {
+      employeeId,
+      responsibilityArea,
+    });
     res.status(200).json({
-      message: `Relationships for Kvartersvärds node with Referensnummer '${referensnummer}' have been removed.`,
+      message: `Relationship between User with employeeId '${employeeId}' working as Kvartersvärd and ResponsibilityArea with id '${responsibilityArea}' has been removed.`,
     });
   } catch (error) {
     console.error('Failed to delete responsibility', error);

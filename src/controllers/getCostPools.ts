@@ -2,18 +2,17 @@ import { Request, Response } from 'express';
 import neo4j, { Driver, Session, Record } from 'neo4j-driver';
 import connectDB from '../config/db';
 
-const getCostpools = async (req: Request, res: Response): Promise<void> => {
-  const kostnadsstalle: string | undefined = req.query.kostnadsstalle as string;
+const getCostPools = async (req: Request, res: Response): Promise<void> => {
+  const costPool: string | undefined = req.query.costPool as string;
 
   let query: string;
   let params: any = {};
 
-  if (kostnadsstalle) {
-    query =
-      'MATCH (k:Kostnadsstalle) WHERE k.Kostnadsstalle = $kostnadsstalle RETURN k';
-    params.kostnadsstalle = kostnadsstalle;
+  if (costPool) {
+    query = 'MATCH (c:CostPool) WHERE c.id = $costPool RETURN c';
+    params.costPool = costPool;
   } else {
-    query = 'MATCH (k:Kostnadsstalle) RETURN k';
+    query = 'MATCH (c:CostPool) RETURN c';
   }
 
   try {
@@ -26,11 +25,11 @@ const getCostpools = async (req: Request, res: Response): Promise<void> => {
     const session: Session = driver.session();
     const result = await session.run(query, params);
     const records = result.records.map((record: Record) => {
-      const k = record.get('k');
+      const c = record.get('c');
       return {
-        id: k.identity.toNumber(),
-        label: k.labels,
-        properties: k.properties,
+        id: c.properties.id,
+        label: c.labels[0],
+        properties: c.properties,
       };
     });
 
@@ -47,4 +46,4 @@ const getCostpools = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
-export default getCostpools;
+export default getCostPools;

@@ -3,36 +3,45 @@ import neo4j, { Driver, Session, Record } from 'neo4j-driver';
 import connectDB from '../config/db';
 
 const getUser = async (req: Request, res: Response): Promise<void> => {
-  const kostnadsstalle: string | undefined = req.query.kostnadsstalle as string;
-  const ansvarsomrade: string | undefined = req.query.ansvarsomrade as string;
+  const costPool: string | undefined = req.query.costPool as string;
+  const responsibilityArea: string | undefined = req.query
+    .responsibilityArea as string;
+  const jobTitle: string | undefined = req.query.jobTitle as string;
 
-  if (kostnadsstalle && ansvarsomrade) {
+  if (!jobTitle) {
+    void res.status(400).json({
+      error: 'JobTitle is required.',
+    });
+    return;
+  }
+
+  if (costPool && responsibilityArea) {
     void res.status(400).json({
       error:
-        'Only one parameter (kostnadsstalle or ansvarsomrade) can be provided at a time.',
+        'Only one parameter (costPool or responsibilityArea) can be provided at a time.',
     });
     return;
   }
 
   let query: string;
-  let params: any = {};
+  let params: any = { jobTitle };
 
-  if (kostnadsstalle) {
+  if (costPool) {
     query =
-      'MATCH (k:Kvartersvard)-[:TILLHÖR]->(a:Ansvarsomrade)-[:TILLHÖR]->(c:Kostnadsstalle) WHERE c.Kostnadsstalle=$kostnadsstalle RETURN k, a, c';
-    params.kostnadsstalle = kostnadsstalle;
-  } else if (ansvarsomrade) {
-    if (ansvarsomrade === 'false') {
+      'MATCH (u:User)-[:WORKS_AS]->(j:JobTitle) WHERE j.title=$jobTitle MATCH (j)-[:BELONGS_TO]->(c:CostPool) WHERE c.id=$costPool RETURN u, j, c';
+    params.costPool = costPool;
+  } else if (responsibilityArea) {
+    if (responsibilityArea === 'false') {
       query =
-        'MATCH (k:Kvartersvard) WHERE NOT (k)-[:TILLHÖR]->(:Ansvarsomrade) RETURN k';
+        'MATCH (u:User)-[:WORKS_AS]->(j:JobTitle) WHERE j.title=$jobTitle AND NOT (u)-[:BELONGS_TO]->(:ResponsibilityArea) RETURN u, j';
     } else {
       query =
-        'MATCH (k:Kvartersvard)-[:TILLHÖR]->(a:Ansvarsomrade)-[:TILLHÖR]->(c:Kostnadsstalle) WHERE a.Ansvarsomrade=$ansvarsomrade RETURN k, a, c';
-      params.ansvarsomrade = ansvarsomrade;
+        'MATCH (u:User)-[:WORKS_AS]->(j:JobTitle) WHERE j.title=$jobTitle MATCH (u)-[:BELONGS_TO]->(ra:ResponsibilityArea) WHERE ra.id=$responsibilityArea RETURN u, j, ra';
+      params.responsibilityArea = responsibilityArea;
     }
   } else {
     query =
-      'MATCH (k:Kvartersvard) OPTIONAL MATCH (k)-[:TILLHÖR]->(a:Ansvarsomrade)-[:TILLHÖR]->(c:Kostnadsstalle) RETURN k, a, c';
+      'MATCH (u:User)-[:WORKS_AS]->(j:JobTitle) WHERE j.title=$jobTitle OPTIONAL MATCH (u)-[:BELONGS_TO]->(ra:ResponsibilityArea)-[:BELONGS_TO]->(c:CostPool) RETURN u, j, ra, c';
   }
 
   try {
@@ -45,15 +54,17 @@ const getUser = async (req: Request, res: Response): Promise<void> => {
     const session: Session = driver.session();
     const result = await session.run(query, params);
     const records = result.records.map((record: Record) => {
-      const k = record.get('k');
-      const a = record.get('a');
+      const u = record.get('u');
+      const j = record.get('j');
+      const ra = record.get('ra');
       const c = record.get('c');
       return {
-        id: k.identity.toNumber(),
-        labels: k.labels,
-        kvartersvard_properties: k.properties,
-        ansvarsomrade_properties: a ? a.properties : null,
-        kostnadsstalle_properties: c ? c.properties : null,
+        id: u.identity.toNumber(),
+        labels: u.labels,
+        user_properties: u.properties,
+        jobtitle_properties: j.properties,
+        responsibilityArea_properties: ra ? ra.properties : null,
+        costPool_properties: c ? c.properties : null,
       };
     });
 

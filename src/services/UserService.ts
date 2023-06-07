@@ -12,64 +12,60 @@ async function updateUser(driver: Driver, user: DBUser): Promise<void> {
 
   try {
     // Update or Create User node
-    const query: string = `
-      MERGE (u:User {id: $id})
-      ON CREATE SET u = $props
-      ON MATCH SET u += $props
+    const userQuery: string = `
+    MERGE (u:User {id: $id})
+    ON CREATE SET u = $props, u.createdAt = timestamp()
+    ON MATCH SET u += $props, u.updatedAt = timestamp()
     `;
     const { jobTitle, officeLocation, ...userProps } = user;
 
-    await txc.run(query, {
+    await txc.run(userQuery, {
       id: user.id,
       props: userProps,
     });
     console.log(`Updated user in the database: ${JSON.stringify(userProps)}`);
 
-    // Check if JobTitle relationship needs to be updated
-    const oldJobTitleQuery: string = `
-      MATCH (u:User {id: $id})-[r:WORKS_AS]->(j:JobTitle)
-      WHERE j.title <> $jobTitle
-      DELETE r
-    `;
-    await txc.run(oldJobTitleQuery, {
-      id: user.id,
-      jobTitle: jobTitle || 'Unknown',
-    });
-
-    // Update or Create JobTitle node and Relationship
+    // Update or Create JobTitle node
     const jobTitleQuery: string = `
-      MERGE (j:JobTitle {title: $jobTitle})
-      MERGE (u)-[:WORKS_AS]->(j)
+    MERGE (j:JobTitle {title: $jobTitle})
+    ON CREATE SET j.title = $jobTitle, j.createdAt = timestamp()
+    ON MATCH SET j.title = $jobTitle, j.updatedAt = timestamp()
     `;
     await txc.run(jobTitleQuery, {
-      id: user.id,
       jobTitle: jobTitle || 'Unknown',
     });
     console.log(`Updated job title in the database: ${jobTitle || 'Unknown'}`);
 
-    // Check if OfficeLocation relationship needs to be updated
-    const oldOfficeLocationQuery: string = `
-      MATCH (u:User {id: $id})-[r:WORKS_FOR]->(o:OfficeLocation)
-      WHERE o.location <> $officeLocation
-      DELETE r
-    `;
-    await txc.run(oldOfficeLocationQuery, {
-      id: user.id,
-      officeLocation: officeLocation || 'Unknown',
-    });
-
-    // Update or Create OfficeLocation node and Relationship
+    // Update or Create OfficeLocation node
     const officeLocationQuery: string = `
-      MERGE (o:OfficeLocation {location: $officeLocation})
-      MERGE (u)-[:WORKS_FOR]->(o)
+    MERGE (o:OfficeLocation {location: $officeLocation})
+    ON CREATE SET o.location = $officeLocation, o.createdAt = timestamp()
+    ON MATCH SET o.location = $officeLocation, o.updatedAt = timestamp()
     `;
     await txc.run(officeLocationQuery, {
-      id: user.id,
       officeLocation: officeLocation || 'Unknown',
     });
     console.log(
       `Updated office location in the database: ${officeLocation || 'Unknown'}`
     );
+
+    // Add all relationships
+    const relationshipQuery: string = `
+    MATCH (u:User {id: $id}), (j:JobTitle {title: $jobTitle}), (o:OfficeLocation {location: $officeLocation})
+    MATCH (p1:PrimeArchStandard {name: 'O53 Person'})
+    MATCH (p2:PrimeArchStandard {name: 'O51 Befattning'})
+    MATCH (p3:PrimeArchStandard {name: 'O31 Organisationsenhet'}) 
+    MERGE (u)-[:FOLLOWS_STANDARD]->(p1)
+    MERGE (j)-[:FOLLOWS_STANDARD]->(p2)
+    MERGE (o)-[:FOLLOWS_STANDARD]->(p3)
+    MERGE (u)-[:WORKS_AS]->(j)
+    MERGE (u)-[:WORKS_FOR]->(o)
+    `;
+    await txc.run(relationshipQuery, {
+      id: user.id,
+      jobTitle: jobTitle || 'Unknown',
+      officeLocation: officeLocation || 'Unknown',
+    });
 
     await txc.commit();
   } catch (error) {
@@ -79,6 +75,37 @@ async function updateUser(driver: Driver, user: DBUser): Promise<void> {
     await session.close();
   }
 }
+
+async function getAllUserIDs(driver: Driver): Promise<string[]> {
+  const session: Session = driver.session();
+  const result = await session.run('MATCH (u:User) RETURN u.id AS id');
+  await session.close();
+  return result.records.map((record) => record.get('id'));
+}
+
+async function deleteUser(driver: Driver, id: string): Promise<void> {
+  const session: Session = driver.session();
+  const txc: Transaction = session.beginTransaction();
+
+  try {
+    // Delete User node and its relationships
+    const query: string = `
+      MATCH (u:User {id: $id})
+      DETACH DELETE u
+    `;
+
+    await txc.run(query, { id });
+    console.log(`Deleted user from the database: ${id}`);
+
+    await txc.commit();
+  } catch (error) {
+    console.error('Failed to delete user from database', error);
+    await txc.rollback();
+  } finally {
+    await session.close();
+  }
+}
+
 export async function updateUsers(): Promise<void> {
   let driver: Driver | undefined;
 
@@ -87,8 +114,22 @@ export async function updateUsers(): Promise<void> {
 
     if (driver) {
       const users: User[] | null = await getUsers();
+      const dbUserIDs: string[] = await getAllUserIDs(driver); // Get all user IDs from the database
 
       if (users) {
+        const fetchedUserIDs: string[] = users.map((user) => user.id);
+
+        // Find the users that exist in the database but not in the fetched users
+        const deletedUserIDs: string[] = dbUserIDs.filter(
+          (id) => !fetchedUserIDs.includes(id)
+        );
+
+        // Delete these users from the database
+        for (const id of deletedUserIDs) {
+          await deleteUser(driver, id);
+        }
+
+        // Update the remaining users
         for (const user of users) {
           if (user.employeeId) {
             await updateUser(driver, user as DBUser);

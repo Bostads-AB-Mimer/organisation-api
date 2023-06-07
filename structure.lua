@@ -3,6 +3,33 @@
     -config
         -db.ts
     -controllers
+        -MicrosoftGraphAPI.ts // <- New Controller
         -deleteResponsibilityRelationship.ts
         -deleteUser.ts
         -getCostPools.ts
+        -getResponsibilityAreas.ts
+        -getUser.ts
+        -patchUser.ts
+        -postResponsibilityRelationship.ts
+        -postUser.ts
+    -middleware
+        -auth.ts
+    -routes
+        -costPoolRoutes.ts
+        -propertiesRoutes.ts
+        -responsibilityAreasRoutes.ts
+        -userRoutes.ts
+    -services
+        -UserService.ts // <- New Service
+    -scheduler
+        -cronJob.ts // <- New Schedule
+    -index.ts
+    -.env
+    -gitignore
+    -deploy-bat
+    -Dockerfile
+    -package-lock.json
+    -package.json
+    -tsconfig.json
+    -structure.lua
+

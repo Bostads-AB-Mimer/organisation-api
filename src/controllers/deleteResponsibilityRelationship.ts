@@ -53,9 +53,12 @@ const deleteResponsibilityRelationship = async (
       return;
     }
 
-    const deleteRelationshipQuery = `MATCH (u:User)-[r:BELONGS_TO]->(ra:ResponsibilityArea)
-                                     WHERE u.employeeId = $employeeId AND ra.id = $responsibilityArea
-                                     DELETE r`;
+    const deleteRelationshipQuery = `
+  MATCH (u:User)-[r:BELONGS_TO]->(ra:ResponsibilityArea)
+  WHERE u.employeeId = $employeeId AND ra.id = $responsibilityArea
+  OPTIONAL MATCH (u)-[r2:BELONGS_TO]->(c:CostPool)
+  DELETE r, r2
+`;
     await session.run(deleteRelationshipQuery, {
       employeeId,
       responsibilityArea,

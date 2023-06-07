@@ -8,11 +8,12 @@ const postResponsibilityRelationship = async (
 ): Promise<void> => {
   const employeeId: string | undefined = req.body.employeeId;
   const responsibilityArea: string | undefined = req.body.responsibilityArea;
+  const jobTitle: string | undefined = req.body.jobTitle;
 
-  if (!employeeId || !responsibilityArea) {
-    res
-      .status(400)
-      .json({ error: 'Both employeeId and responsibilityArea are required.' });
+  if (!employeeId || !responsibilityArea || !jobTitle) {
+    res.status(400).json({
+      error: 'employeeId, jobTitle, and responsibilityArea are all required.',
+    });
     return;
   }
 
@@ -24,44 +25,44 @@ const postResponsibilityRelationship = async (
 
   const session: Session = driver.session();
   try {
-    const userNodeQuery = `MATCH (u:User)-[:WORKS_AS]->(j:JobTitle) WHERE u.employeeId = $employeeId AND j.title="Kvartersvärd" RETURN count(u) as count`;
-    const userNodeResult = await session.run(userNodeQuery, { employeeId });
-    const userNodeCount = userNodeResult.records[0].get('count').toNumber();
-    if (userNodeCount === 0) {
-      res.status(400).json({
-        error:
-          'User node with the given employeeId and working as Kvartersvärd does not exist in the database.',
-      });
-      return;
-    }
-
-    const responsibilityAreaCountQuery = `MATCH (ra:ResponsibilityArea) WHERE ra.id = $responsibilityArea RETURN count(ra) as count`;
+    const responsibilityAreaQuery = `MATCH (ra:ResponsibilityArea)-[:BELONGS_TO]->(c:CostPool) WHERE ra.id = $responsibilityArea RETURN c.id as costPoolId`;
     const responsibilityAreaResult = await session.run(
-      responsibilityAreaCountQuery,
-      {
-        responsibilityArea,
-      }
+      responsibilityAreaQuery,
+      { responsibilityArea }
     );
-    const responsibilityAreaCount = responsibilityAreaResult.records[0]
-      .get('count')
-      .toNumber();
-    if (responsibilityAreaCount === 0) {
+    const costPoolId = responsibilityAreaResult.records[0]?.get('costPoolId');
+    if (!costPoolId) {
       res.status(400).json({
         error:
-          'ResponsibilityArea node with the given id does not exist in the database.',
+          'ResponsibilityArea node with the given id does not belong to any CostPool in the database.',
       });
       return;
     }
 
-    const createRelationshipQuery = `MATCH (u:User)-[:WORKS_AS]->(j:JobTitle),(ra:ResponsibilityArea)
-                                     WHERE u.employeeId = $employeeId AND j.title="Kvartersvärd" AND ra.id = $responsibilityArea
-                                     MERGE (u)-[:BELONGS_TO]->(ra)`;
+    // Delete existing relationships
+    const deleteExistingRelationshipsQuery = `
+      MATCH (u:User)-[r:BELONGS_TO]->(:ResponsibilityArea), (u)-[r2:BELONGS_TO]->(:CostPool) 
+      WHERE u.employeeId = $employeeId
+      DELETE r, r2
+    `;
+    await session.run(deleteExistingRelationshipsQuery, { employeeId });
+
+    // Create new relationships
+    const createRelationshipQuery = `
+      MATCH (u:User)-[:WORKS_AS]->(j:JobTitle), (ra:ResponsibilityArea), (c:CostPool)
+      WHERE u.employeeId = $employeeId AND j.title = $jobTitle AND ra.id = $responsibilityArea AND c.id = $costPoolId
+      MERGE (u)-[:BELONGS_TO]->(ra)
+      MERGE (u)-[:BELONGS_TO]->(c)
+    `;
     await session.run(createRelationshipQuery, {
       employeeId,
       responsibilityArea,
+      costPoolId,
+      jobTitle,
     });
+
     res.status(200).json({
-      message: `Relationship created between User with employeeId '${employeeId}' working as Kvartersvärd and ResponsibilityArea with id '${responsibilityArea}'.`,
+      message: `Relationships created between User with employeeId '${employeeId}' working as '${jobTitle}' and ResponsibilityArea with id '${responsibilityArea}', as well as between User and CostPool with id '${costPoolId}'.`,
     });
   } catch (error) {
     console.error('Unexpected error:', error);

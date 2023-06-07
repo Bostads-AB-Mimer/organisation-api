@@ -28,22 +28,16 @@ const getUser = async (req: Request, res: Response): Promise<void> => {
 
   if (costPool) {
     query =
-      'MATCH (u:User)-[:WORKS_AS]->(j:JobTitle) WHERE j.title=$jobTitle MATCH (j)-[:BELONGS_TO]->(c:CostPool) WHERE c.id=$costPool RETURN u, j, c';
+      'MATCH (u:User)-[:WORKS_AS]->(j:JobTitle) WHERE j.title=$jobTitle MATCH (u)-[rel:BELONGS_TO]->(c:CostPool) WHERE c.id=$costPool OPTIONAL MATCH (u)-[:BELONGS_TO]->(ra:ResponsibilityArea) RETURN u, j, rel, c, ra';
     params.costPool = costPool;
   } else if (responsibilityArea) {
-    if (responsibilityArea === 'false') {
-      query =
-        'MATCH (u:User)-[:WORKS_AS]->(j:JobTitle) WHERE j.title=$jobTitle AND NOT (u)-[:BELONGS_TO]->(:ResponsibilityArea) RETURN u, j';
-    } else {
-      query =
-        'MATCH (u:User)-[:WORKS_AS]->(j:JobTitle) WHERE j.title=$jobTitle MATCH (u)-[:BELONGS_TO]->(ra:ResponsibilityArea) WHERE ra.id=$responsibilityArea RETURN u, j, ra';
-      params.responsibilityArea = responsibilityArea;
-    }
+    query =
+      'MATCH (u:User)-[:WORKS_AS]->(j:JobTitle) WHERE j.title=$jobTitle MATCH (u)-[:BELONGS_TO]->(ra:ResponsibilityArea) WHERE ra.id=$responsibilityArea OPTIONAL MATCH (ra)-[:BELONGS_TO]->(c:CostPool) RETURN u, j, ra, c';
+    params.responsibilityArea = responsibilityArea;
   } else {
     query =
-      'MATCH (u:User)-[:WORKS_AS]->(j:JobTitle) WHERE j.title=$jobTitle OPTIONAL MATCH (u)-[:BELONGS_TO]->(ra:ResponsibilityArea)-[:BELONGS_TO]->(c:CostPool) RETURN u, j, ra, c';
+      'MATCH (u:User)-[:WORKS_AS]->(j:JobTitle) WHERE j.title=$jobTitle OPTIONAL MATCH (u)-[:BELONGS_TO]->(ra:ResponsibilityArea) OPTIONAL MATCH (ra)-[:BELONGS_TO]->(c:CostPool) OPTIONAL MATCH (u)-[rel:BELONGS_TO]->(c2:CostPool) RETURN u, j, ra, c, rel, c2';
   }
-
   try {
     const driver: Driver | undefined = await connectDB();
     if (!driver) {
@@ -63,8 +57,8 @@ const getUser = async (req: Request, res: Response): Promise<void> => {
         labels: u.labels,
         user_properties: u.properties,
         jobtitle_properties: j.properties,
-        responsibilityArea_properties: ra ? ra.properties : null,
-        costPool_properties: c ? c.properties : null,
+        responsibilityArea_properties: ra ? ra.properties : {},
+        costPool_properties: c ? c.properties : {},
       };
     });
 

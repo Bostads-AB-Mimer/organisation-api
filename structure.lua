@@ -3,15 +3,13 @@
     -config
         -db.ts
     -controllers
-        -MicrosoftGraphAPI.ts // <- New Controller
+        -microsoftGraphAPI.ts 
         -deleteResponsibilityRelationship.ts
-        -deleteUser.ts
         -getCostPools.ts
+        -getProperties.ts
         -getResponsibilityAreas.ts
         -getUser.ts
-        -patchUser.ts
         -postResponsibilityRelationship.ts
-        -postUser.ts
     -middleware
         -auth.ts
     -routes
@@ -20,13 +18,12 @@
         -responsibilityAreasRoutes.ts
         -userRoutes.ts
     -services
-        -UserService.ts // <- New Service
+        -UserService.ts 
     -scheduler
-        -cronJob.ts // <- New Schedule
+        -cronJob.ts 
     -index.ts
     -.env
     -gitignore
-    -deploy-bat
     -Dockerfile
     -package-lock.json
     -package.json

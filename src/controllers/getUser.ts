@@ -8,13 +8,6 @@ const getUser = async (req: Request, res: Response): Promise<void> => {
     .responsibilityArea as string;
   const jobTitle: string | undefined = req.query.jobTitle as string;
 
-  if (!jobTitle) {
-    void res.status(400).json({
-      error: 'JobTitle is required.',
-    });
-    return;
-  }
-
   if (costPool && responsibilityArea) {
     void res.status(400).json({
       error:
@@ -24,19 +17,26 @@ const getUser = async (req: Request, res: Response): Promise<void> => {
   }
 
   let query: string;
-  let params: any = { jobTitle };
+  let params: any = {};
+
+  if (jobTitle) {
+    params.jobTitle = jobTitle;
+  }
 
   if (costPool) {
-    query =
-      'MATCH (u:User)-[:WORKS_AS]->(j:JobTitle) WHERE j.title=$jobTitle MATCH (u)-[rel:BELONGS_TO]->(c:CostPool) WHERE c.id=$costPool OPTIONAL MATCH (u)-[:BELONGS_TO]->(ra:ResponsibilityArea) RETURN u, j, rel, c, ra';
+    query = jobTitle
+      ? 'MATCH (u:User)-[:WORKS_AS]->(j:JobTitle) WHERE j.title=$jobTitle MATCH (u)-[rel:BELONGS_TO]->(c:CostPool) WHERE c.id=$costPool OPTIONAL MATCH (u)-[:BELONGS_TO]->(ra:ResponsibilityArea) RETURN u, j, rel, c, ra'
+      : 'MATCH (u:User)-[rel:BELONGS_TO]->(c:CostPool) WHERE c.id=$costPool OPTIONAL MATCH (u)-[:BELONGS_TO]->(ra:ResponsibilityArea) OPTIONAL MATCH (u)-[:WORKS_AS]->(j:JobTitle) RETURN u, j, rel, c, ra';
     params.costPool = costPool;
   } else if (responsibilityArea) {
-    query =
-      'MATCH (u:User)-[:WORKS_AS]->(j:JobTitle) WHERE j.title=$jobTitle MATCH (u)-[:BELONGS_TO]->(ra:ResponsibilityArea) WHERE ra.id=$responsibilityArea OPTIONAL MATCH (ra)-[:BELONGS_TO]->(c:CostPool) RETURN u, j, ra, c';
+    query = jobTitle
+      ? 'MATCH (u:User)-[:WORKS_AS]->(j:JobTitle) WHERE j.title=$jobTitle MATCH (u)-[:BELONGS_TO]->(ra:ResponsibilityArea) WHERE ra.id=$responsibilityArea OPTIONAL MATCH (ra)-[:BELONGS_TO]->(c:CostPool) RETURN u, j, ra, c'
+      : 'MATCH (u:User)-[:BELONGS_TO]->(ra:ResponsibilityArea) WHERE ra.id=$responsibilityArea OPTIONAL MATCH (ra)-[:BELONGS_TO]->(c:CostPool) OPTIONAL MATCH (u)-[:WORKS_AS]->(j:JobTitle) RETURN u, j, ra, c';
     params.responsibilityArea = responsibilityArea;
   } else {
-    query =
-      'MATCH (u:User)-[:WORKS_AS]->(j:JobTitle) WHERE j.title=$jobTitle OPTIONAL MATCH (u)-[:BELONGS_TO]->(ra:ResponsibilityArea) OPTIONAL MATCH (ra)-[:BELONGS_TO]->(c:CostPool) OPTIONAL MATCH (u)-[rel:BELONGS_TO]->(c2:CostPool) RETURN u, j, ra, c, rel, c2';
+    query = jobTitle
+      ? 'MATCH (u:User)-[:WORKS_AS]->(j:JobTitle) WHERE j.title=$jobTitle OPTIONAL MATCH (u)-[:BELONGS_TO]->(ra:ResponsibilityArea) OPTIONAL MATCH (ra)-[:BELONGS_TO]->(c:CostPool) OPTIONAL MATCH (u)-[rel:BELONGS_TO]->(c2:CostPool) RETURN u, j, ra, c, rel, c2'
+      : 'MATCH (u:User) OPTIONAL MATCH (u)-[:WORKS_AS]->(j:JobTitle) OPTIONAL MATCH (u)-[:BELONGS_TO]->(ra:ResponsibilityArea) OPTIONAL MATCH (ra)-[:BELONGS_TO]->(c:CostPool) OPTIONAL MATCH (u)-[rel:BELONGS_TO]->(c2:CostPool) RETURN u, j, ra, c, rel, c2';
   }
   try {
     const driver: Driver | undefined = await connectDB();

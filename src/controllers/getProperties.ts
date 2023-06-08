@@ -3,31 +3,9 @@ import neo4j, { Driver, Session, Record } from 'neo4j-driver';
 import connectDB from '../config/db';
 
 const getProperties = async (req: Request, res: Response): Promise<void> => {
-  const kostnadsstalle: string | undefined = req.query.kostnadsstalle as string;
-  const ansvarsomrade: string | undefined = req.query.ansvarsomrade as string;
-
-  if (kostnadsstalle && ansvarsomrade) {
-    res.status(400).json({
-      error:
-        'Only one parameter (kostnadsstalle or ansvarsomrade) can be provided at a time.',
-    });
-    return;
-  }
-
-  let query: string;
-  let params: any = {};
-
-  if (kostnadsstalle) {
-    query =
-      'MATCH (f:Fastighet)<-[]-(k:Kostnadsstalle) WHERE k.Kostnadsstalle = $kostnadsstalle RETURN f';
-    params.kostnadsstalle = kostnadsstalle;
-  } else if (ansvarsomrade) {
-    query =
-      'MATCH (f:Fastighet)<-[]-(a:Ansvarsomrade) WHERE a.Ansvarsomrade = $ansvarsomrade RETURN f';
-    params.ansvarsomrade = ansvarsomrade;
-  } else {
-    query = 'MATCH (f:Fastighet) RETURN f';
-  }
+  const costPool: string | undefined = req.query.costPool as string;
+  const responsibilityArea: string | undefined = req.query
+    .responsibilityArea as string;
 
   const driver: Driver | undefined = await connectDB();
   if (!driver) {
@@ -36,18 +14,50 @@ const getProperties = async (req: Request, res: Response): Promise<void> => {
   }
 
   const session: Session = driver.session();
-  const result = await session.run(query, params);
-  const records = result.records.map((record: Record) => {
-    const f = record.get('f');
-    return {
-      id: f.identity.toNumber(),
-      labels: f.labels,
-      properties: f.properties,
-    };
-  });
 
-  session.close();
-  res.json(records);
+  let baseQuery = 'MATCH (p:Property)';
+  let queryParams: any = {};
+
+  if (costPool) {
+    baseQuery += '<-[:BELONGS_TO]-(cp:CostPool { id: $costPool })';
+    queryParams.costPool = costPool;
+  }
+
+  if (responsibilityArea) {
+    baseQuery +=
+      '<-[:BELONGS_TO]-(ra:ResponsibilityArea { id: $responsibilityArea })';
+    queryParams.responsibilityArea = responsibilityArea;
+  }
+
+  baseQuery +=
+    ' OPTIONAL MATCH (p)<-[:BELONGS_TO]-(cp:CostPool) OPTIONAL MATCH (p)<-[:BELONGS_TO]-(ra:ResponsibilityArea) RETURN p, collect(distinct cp) as costPools, collect(distinct ra) as responsibilityAreas';
+
+  try {
+    const result = await session.run(baseQuery, queryParams);
+    const records = result.records.map((record: Record) => {
+      const property = record.get('p');
+      const costPool = record.get('costPools').map((cp: any) => cp.properties);
+      const responsibilityArea = record
+        .get('responsibilityAreas')
+        .map((ra: any) => ra.properties);
+      return {
+        id: property.identity.toNumber(),
+        property: property.properties.id,
+        name: property.properties.name,
+        costPool,
+        responsibilityArea,
+      };
+    });
+
+    session.close();
+    res.json(records);
+  } catch (err) {
+    session.close();
+    res.status(500).json({
+      error: 'An error occurred while fetching properties',
+      details: err,
+    });
+  }
 };
 
 export default getProperties;

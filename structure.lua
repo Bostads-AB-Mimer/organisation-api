@@ -3,7 +3,6 @@
     -config
         -db.ts
     -controllers
-        -microsoftGraphAPI.ts 
         -deleteResponsibilityRelationship.ts
         -getCostPools.ts
         -getProperties.ts
@@ -12,6 +11,8 @@
         -postResponsibilityRelationship.ts
     -middleware
         -auth.ts
+    -integrations
+        -microsoftGraphAPI.ts
     -routes
         -costPoolRoutes.ts
         -propertiesRoutes.ts

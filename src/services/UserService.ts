@@ -1,4 +1,4 @@
-import { User, getUsers } from '../controllers/microsoftGraphApi';
+import { User, getUsers } from '../integrations/microsoftGraphApi';
 import { Driver, Session, Transaction } from 'neo4j-driver';
 import connectDB from '../config/db';
 

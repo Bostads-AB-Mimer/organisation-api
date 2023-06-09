@@ -9,7 +9,7 @@ import propertiesRoutes from './routes/propertiesRoutes';
 import auth from './middleware/auth';
 import cors from 'cors';
 import { scheduleJobs } from './scheduler/cronJob';
-//import { updateUsers } from './services/UserService';
+import { updateUsers } from './services/userService';
 
 const app = express();
 
@@ -35,6 +35,6 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, async () => {
   // <-- Note the async
   console.log(`Server started on port ${PORT}`);
-  // await updateUsers(); // Runs immediately when the server starts.
+  await updateUsers(); // Runs immediately when the server starts.
   scheduleJobs(); // Schedules the job to run at midnight every day.
 });

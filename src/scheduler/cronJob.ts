@@ -1,5 +1,5 @@
 import { CronJob } from 'cron';
-import { updateUsers } from '../services/UserService';
+import { updateUsers } from '../services/userService';
 
 export function scheduleJobs(): void {
   // This cron job is scheduled to run every day at 12:00 AM.

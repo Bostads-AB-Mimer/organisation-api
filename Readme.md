@@ -24,22 +24,6 @@ The API provides several endpoints to interact with the organization data.
 
 ## API Endpoints
 
-┌─────────────────┐
-│ │
-│ Organisation │
-│ │
-└─────────────────┘
-│
-├─────> GET /api/users
-│
-├─────> GET /api/costpools
-│
-├─────> GET /api/responsibilityareas
-│ ├─────> POST /api/responsibilityareas
-│ └─────> DELETE /api/responsibilityareas
-│
-└─────> GET /api/properties
-
 - `/api/users`: Retrieve user records. (GET)
 - `/api/costpools`: Retrieve cost pool records. (GET)
 - `/api/responsibilityareas`: Retrieve responsibility area records. (GET)

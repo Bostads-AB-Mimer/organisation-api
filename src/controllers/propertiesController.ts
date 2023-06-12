@@ -1,19 +1,16 @@
-import { Request, Response } from 'express';
-import neo4j, { Driver, Session, Record } from 'neo4j-driver';
+import { Request, Response, NextFunction } from 'express';
+import { Driver, Session, Record } from 'neo4j-driver';
 import connectDB from '../config/db';
 
-const getProperties = async (req: Request, res: Response): Promise<void> => {
+export const getProperties = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   const costPool: string | undefined = req.query.costPool as string;
   const responsibilityArea: string | undefined = req.query
     .responsibilityArea as string;
-
-  const driver: Driver | undefined = await connectDB();
-  if (!driver) {
-    res.status(500).json({ error: 'Failed to connect to database' });
-    return;
-  }
-
-  const session: Session = driver.session();
+  let session: Session | null = null;
 
   let baseQuery = 'MATCH (p:Property)';
   let queryParams: any = {};
@@ -33,6 +30,12 @@ const getProperties = async (req: Request, res: Response): Promise<void> => {
     ' OPTIONAL MATCH (p)<-[:BELONGS_TO]-(cp:CostPool) OPTIONAL MATCH (p)<-[:BELONGS_TO]-(ra:ResponsibilityArea) RETURN p, collect(distinct cp) as costPools, collect(distinct ra) as responsibilityAreas';
 
   try {
+    const driver: Driver | undefined = await connectDB();
+    if (!driver) {
+      throw new Error('Failed to connect to database');
+    }
+
+    session = driver.session();
     const result = await session.run(baseQuery, queryParams);
     const records = result.records.map((record: Record) => {
       const property = record.get('p');
@@ -49,15 +52,12 @@ const getProperties = async (req: Request, res: Response): Promise<void> => {
       };
     });
 
-    session.close();
     res.json(records);
-  } catch (err) {
-    session.close();
-    res.status(500).json({
-      error: 'An error occurred while fetching properties',
-      details: err,
-    });
+  } catch (error) {
+    next(error);
+  } finally {
+    if (session) {
+      session.close();
+    }
   }
 };
-
-export default getProperties;

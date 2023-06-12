@@ -1,33 +1,31 @@
 -node_modules
 -src
     -config
-        -db.ts
+        -db.ts 
     -controllers
-        -deleteResponsibilityRelationship.ts
-        -getCostPools.ts
-        -getProperties.ts
-        -getResponsibilityAreas.ts
-        -getUser.ts
-        -postResponsibilityRelationship.ts
+        -costPoolController.ts 
+        -responsibilityAreasController.ts 
+        -userController.ts 
     -middleware
-        -auth.ts
+        -auth.ts 
+        -error-handler.ts 
     -integrations
-        -microsoftGraphAPI.ts
+        -microsoftGraphAPI.ts 
     -routes
-        -costPoolRoutes.ts
-        -propertiesRoutes.ts
-        -responsibilityAreasRoutes.ts
-        -userRoutes.ts
+        -costPoolRoutes.ts 
+        -propertiesRoutes.ts 
+        -responsibilityAreasRoutes.ts 
+        -userRoutes.ts 
     -services
         -UserService.ts 
     -scheduler
         -cronJob.ts 
-    -index.ts
+    -index.ts 
     -.env
     -gitignore
     -Dockerfile
     -package-lock.json
-    -package.json
-    -tsconfig.json
+    -package.json 
+    -tsconfig.json 
     -structure.lua
 

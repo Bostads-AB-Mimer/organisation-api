@@ -9,7 +9,8 @@ import propertiesRoutes from './routes/propertiesRoutes';
 import auth from './middleware/auth';
 import cors from 'cors';
 import { scheduleJobs } from './scheduler/cronJob';
-import { updateUsers } from './services/userService';
+import { errorHandler } from './middleware/error-handler';
+//import { updateUsers } from './services/userService';
 
 const app = express();
 
@@ -30,11 +31,14 @@ app.use('/api/costpools', costPoolRoutes);
 app.use('/api/responsibilityareas', responsibilityAreasRoutes);
 app.use('/api/properties', propertiesRoutes);
 
+// use the error handler middleware
+app.use(errorHandler);
+
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, async () => {
   // <-- Note the async
   console.log(`Server started on port ${PORT}`);
-  await updateUsers(); // Runs immediately when the server starts.
+  // await updateUsers(); // Runs immediately when the server starts.
   scheduleJobs(); // Schedules the job to run at midnight every day.
 });

@@ -1,8 +1,12 @@
-import { Request, Response } from 'express';
-import neo4j, { Driver, Session, Record } from 'neo4j-driver';
+import { Request, Response, NextFunction } from 'express';
+import { Driver, Session, Record } from 'neo4j-driver';
 import connectDB from '../config/db';
 
-const getCostPools = async (req: Request, res: Response): Promise<void> => {
+export const getCostPools = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   const costPool: string | undefined = req.query.costPool as string;
 
   let query: string;
@@ -15,14 +19,15 @@ const getCostPools = async (req: Request, res: Response): Promise<void> => {
     query = 'MATCH (c:CostPool) RETURN c';
   }
 
+  let session: Session | null = null;
+
   try {
     const driver: Driver | undefined = await connectDB();
     if (!driver) {
-      void res.status(500).json({ error: 'Failed to connect to database' });
-      return;
+      throw new Error('Failed to connect to database');
     }
 
-    const session: Session = driver.session();
+    session = driver.session();
     const result = await session.run(query, params);
     const records = result.records.map((record: Record) => {
       const c = record.get('c');
@@ -33,17 +38,12 @@ const getCostPools = async (req: Request, res: Response): Promise<void> => {
       };
     });
 
-    session.close();
-    void res.json(records);
+    res.json(records);
   } catch (error) {
-    if (error instanceof neo4j.Neo4jError) {
-      console.error('Neo4j error:', error);
-      void res.status(500).json({ error: 'Database query failed' });
-    } else {
-      console.error('Unknown error:', error);
-      void res.status(500).json({ error: 'Unknown server error' });
+    next(error);
+  } finally {
+    if (session) {
+      session.close();
     }
   }
 };
-
-export default getCostPools;

@@ -1,18 +1,14 @@
-import express, { Request, Response, Router } from 'express';
-import getCostpools from '../controllers/getCostPools';
+import express, { Request, Response, Router, NextFunction } from 'express';
+import { getCostPools } from '../controllers/costPoolsController';
+import { errorHandler } from '../middleware/error-handler';
 
 const router: Router = express.Router();
 
-router.get('/', async (req: Request, res: Response) => {
-  try {
-    await getCostpools(req, res);
-  } catch (error) {
-    if (error instanceof Error) {
-      res.status(500).json({ error: error.toString() });
-    } else {
-      res.status(500).json({ error: 'An unknown error occurred.' });
-    }
-  }
+router.get('/', async (req: Request, res: Response, next: NextFunction) => {
+  await getCostPools(req, res, next);
 });
+
+// Use error handling middleware
+router.use(errorHandler);
 
 export default router;

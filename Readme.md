@@ -1,6 +1,6 @@
 # Organisation API
 
-The Organisation API is a simple REST API built using Node.js, Express, and TypeScript that interacts with a Neo4j database. It allows users to perform CRUD operations on the database, retrieving and managing information about the organization's cost pools, responsibility areas, properties, and users.
+The Organisation API is a simple REST API built using Node.js, Express, and TypeScript that interacts with a Neo4j database. It allows users to perform CRUD operations on the database, retrieving and managing information about the organization's cost pools, responsibility areas, properties, and users. It also performs a scheduled input (cronjob) every 24 hours fetching, adding, updating and deleting selected users from the Microsoft Active directory, trough the Microsoft Graph API. 
 
 ## Table of Contents
 
@@ -46,6 +46,9 @@ Your `.env` file should include the following variables:
 - `NEO4J_URI`: The URI of your Neo4j instance.
 - `NEO4J_USER`: The username for your Neo4j database.
 - `NEO4J_PASSWORD`: The password for your Neo4j database.
+- `MICROSOFT_TENANTID`= The tenant AD for the microsoft graph API. 
+- `MICROSOFT_CLIENTID`= The client id for the microsoft graph API.
+- `MICROSOFT_SECRETVALUE`= The Secret value for the microsoft graph API.
 
 ## File Structure
 

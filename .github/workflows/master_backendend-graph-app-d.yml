@@ -42,7 +42,7 @@ jobs:
 
       - name: Archive production artifacts
         run: |
-          tar -czvf node-app.tar.gz -C . .
+          tar -czvf node-app.tar.gz -C dist .
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v2

@@ -13,6 +13,11 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      - name: List all files
+        run: |
+          echo "Listing all files in repository:"
+          find . -type f
+
       - name: Set up Node.js version
         uses: actions/setup-node@v1
         with:

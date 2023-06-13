@@ -40,11 +40,15 @@ jobs:
       - name: Prune development dependencies
         run: npm prune --production
 
+      - name: Archive production artifacts
+        run: |
+          tar -czvf node-app.tar.gz -C . .
+
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v2
         with:
           name: node-app
-          path: .
+          path: ./node-app.tar.gz
 
   deploy:
     runs-on: ubuntu-latest
@@ -58,6 +62,9 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: node-app
+
+      - name: Extract artifacts
+        run: tar -xzvf node-app.tar.gz
 
       - name: 'Deploy to Azure Web App'
         id: deploy-to-webapp

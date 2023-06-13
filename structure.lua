@@ -17,7 +17,7 @@
         -responsibilityAreasRoutes.ts 
         -userRoutes.ts 
     -services
-        -UserService.ts 
+        -userService.ts 
     -scheduler
         -cronJob.ts 
     -index.ts 

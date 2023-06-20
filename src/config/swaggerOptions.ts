@@ -1,4 +1,4 @@
-export const swaggerOptions = {
+export const getSwaggerOptions = () => ({
   definition: {
     openapi: '3.0.0',
     info: {
@@ -140,4 +140,4 @@ export const swaggerOptions = {
     },
   },
   apis: ['./src/routes/v1/*.ts'],
-};
+});

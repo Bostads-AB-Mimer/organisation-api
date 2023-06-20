@@ -12,21 +12,25 @@ import { scheduleJobs } from './scheduler/cronJob';
 import { errorHandler } from './middleware/error-handler';
 import swaggerJsDoc from 'swagger-jsdoc';
 import swaggerUi from 'swagger-ui-express';
-import { swaggerOptions } from './config/swaggerOptions';
+import { getSwaggerOptions } from './config/swaggerOptions';
 
 const app = express();
 
 // Swagger setup
+const swaggerOptions = getSwaggerOptions(); // Call the function here
 const swaggerDocs = swaggerJsDoc(swaggerOptions);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
 // Middleware
 app.use(express.json());
-app.use(
+app.use(cors());
+
+//specify cors values if needed like so:
+/*app.use(
   cors({
     origin: 'http://localhost:3000',
   })
-);
+);*/
 
 // Use the auth middleware
 app.use(auth);

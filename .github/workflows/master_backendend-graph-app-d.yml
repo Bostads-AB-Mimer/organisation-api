@@ -36,6 +36,7 @@ jobs:
           MICROSOFT_TENANTID: ${{ secrets.MICROSOFT_TENANTID }}
           MICROSOFT_CLIENTID: ${{ secrets.MICROSOFT_CLIENTID }}
           MICROSOFT_SECRETVALUE: ${{ secrets.MICROSOFT_SECRETVALUE }}
+          SERVER_URL: ${{ secrets.SERVER_URL}}
 
       - name: Prune development dependencies
         run: npm prune --production

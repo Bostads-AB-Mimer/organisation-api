@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import neo4j, { Driver, Session, Record } from 'neo4j-driver';
-import connectDB from '../config/db';
+import connectDB from '../../config/db';
 
 export const getUser = async (
   req: Request,

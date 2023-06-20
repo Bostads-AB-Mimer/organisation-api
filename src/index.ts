@@ -2,10 +2,10 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 import express from 'express';
-import userRoutes from './routes/userRoutes';
-import costPoolRoutes from './routes/costPoolRoutes';
-import responsibilityAreasRoutes from './routes/responsibilityAreasRoutes';
-import propertiesRoutes from './routes/propertiesRoutes';
+import userRoutes from './routes/v1/userRoutes';
+import costPoolRoutes from './routes/v1/costPoolRoutes';
+import responsibilityAreasRoutes from './routes/v1/responsibilityAreasRoutes';
+import propertiesRoutes from './routes/v1/propertiesRoutes';
 import auth from './middleware/auth';
 import cors from 'cors';
 import { scheduleJobs } from './scheduler/cronJob';
@@ -26,10 +26,10 @@ app.use(
 app.use(auth);
 
 // Routes
-app.use('/api/users', userRoutes);
-app.use('/api/costpools', costPoolRoutes);
-app.use('/api/responsibilityareas', responsibilityAreasRoutes);
-app.use('/api/properties', propertiesRoutes);
+app.use('/api/v1/users', userRoutes);
+app.use('/api/v1/costpools', costPoolRoutes);
+app.use('/api/v1/responsibilityareas', responsibilityAreasRoutes);
+app.use('/api/v1/properties', propertiesRoutes);
 
 // use the error handler middleware
 app.use(errorHandler);

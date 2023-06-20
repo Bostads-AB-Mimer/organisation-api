@@ -3,8 +3,8 @@ import {
   getResponsibilityAreas,
   postResponsibilityRelationship,
   deleteResponsibilityRelationship,
-} from '../controllers/responsibilityAreasController';
-import { errorHandler } from '../middleware/error-handler';
+} from '../../controllers/v1/responsibilityAreasController';
+import { errorHandler } from '../../middleware/error-handler';
 
 const router: Router = express.Router();
 

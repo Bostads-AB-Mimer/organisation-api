@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { Driver, Session, Record } from 'neo4j-driver';
-import connectDB from '../config/db';
+import connectDB from '../../config/db';
 
 export const getProperties = async (
   req: Request,

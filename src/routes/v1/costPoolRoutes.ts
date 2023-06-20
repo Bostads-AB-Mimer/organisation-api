@@ -1,11 +1,11 @@
 import express, { Request, Response, Router, NextFunction } from 'express';
-import { getProperties } from '../controllers/propertiesController';
-import { errorHandler } from '../middleware/error-handler';
+import { getCostPools } from '../../controllers/v1/costPoolsController';
+import { errorHandler } from '../../middleware/error-handler';
 
 const router: Router = express.Router();
 
 router.get('/', async (req: Request, res: Response, next: NextFunction) => {
-  await getProperties(req, res, next);
+  await getCostPools(req, res, next);
 });
 
 // Use error handling middleware

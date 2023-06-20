@@ -10,9 +10,15 @@ import auth from './middleware/auth';
 import cors from 'cors';
 import { scheduleJobs } from './scheduler/cronJob';
 import { errorHandler } from './middleware/error-handler';
-//import { updateUsers } from './services/userService';
+import swaggerJsDoc from 'swagger-jsdoc';
+import swaggerUi from 'swagger-ui-express';
+import { swaggerOptions } from './config/swaggerOptions';
 
 const app = express();
+
+// Swagger setup
+const swaggerDocs = swaggerJsDoc(swaggerOptions);
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
 // Middleware
 app.use(express.json());
@@ -31,14 +37,12 @@ app.use('/api/v1/costpools', costPoolRoutes);
 app.use('/api/v1/responsibilityareas', responsibilityAreasRoutes);
 app.use('/api/v1/properties', propertiesRoutes);
 
-// use the error handler middleware
+// Use the error handler middleware
 app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, async () => {
-  // <-- Note the async
   console.log(`Server started on port ${PORT}`);
-  // await updateUsers(); // Runs immediately when the server starts.
   scheduleJobs(); // Schedules the job to run at midnight every day.
 });

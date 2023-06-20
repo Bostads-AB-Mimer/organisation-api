@@ -1,21 +1,24 @@
 -node_modules
 -src
     -config
-        -db.ts 
+        -db.ts
+        -swaggerOptions.ts
     -controllers
-        -costPoolController.ts 
-        -responsibilityAreasController.ts 
-        -userController.ts 
+        -v1
+            -costPoolController.ts 
+            -responsibilityAreasController.ts 
+            -userController.ts 
     -middleware
         -auth.ts 
         -error-handler.ts 
     -integrations
         -microsoftGraphAPI.ts 
     -routes
-        -costPoolRoutes.ts 
-        -propertiesRoutes.ts 
-        -responsibilityAreasRoutes.ts 
-        -userRoutes.ts 
+        -v1
+            -costPoolRoutes.ts 
+            -propertiesRoutes.ts 
+            -responsibilityAreasRoutes.ts 
+            -userRoutes.ts 
     -services
         -userService.ts 
     -scheduler

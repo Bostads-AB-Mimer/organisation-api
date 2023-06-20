@@ -89,43 +89,44 @@ export const swaggerOptions = {
             },
           },
         },
-      },
-
-      Property: {
-        type: 'object',
-        properties: {
-          id: { type: 'number', description: 'Property id' },
-          property: { type: 'string', description: 'Property code' },
-          name: { type: 'string', description: 'Property name' },
-          costPool: {
-            type: 'array',
-            items: {
-              type: 'object',
-              properties: {
-                id: { type: 'string', description: 'CostPool id' },
+        Property: {
+          type: 'object',
+          properties: {
+            id: { type: 'number', description: 'Property id' },
+            property: { type: 'string', description: 'Property code' },
+            name: { type: 'string', description: 'Property name' },
+            costPool: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  id: { type: 'string', description: 'CostPool id' },
+                },
               },
+              description: 'Array of cost pools',
             },
-            description: 'Array of cost pools',
-          },
-          responsibilityArea: {
-            type: 'array',
-            items: {
-              type: 'object',
-              properties: {
-                id: { type: 'string', description: 'Responsibility Area id' },
+            responsibilityArea: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  id: { type: 'string', description: 'Responsibility Area id' },
+                },
               },
+              description: 'Array of responsibility areas',
             },
-            description: 'Array of responsibility areas',
           },
         },
-      },
-      ResponsibilityArea: {
-        type: 'object',
-        properties: {
-          id: { type: 'number', description: 'Responsibility area id' },
-          responsibilityArea: {
-            type: 'string',
-            description: 'Responsibility area code',
+        ResponsibilityArea: {
+          type: 'object',
+          properties: {
+            id: { type: 'number', description: 'Responsibility area id' },
+            responsibilityArea: {
+              type: 'string',
+              description: 'Responsibility area code',
+            },
+            employeeId: { type: 'string', description: 'Employee Id' },
+            jobTitle: { type: 'string', description: 'Job Title' },
           },
         },
       },

@@ -103,6 +103,24 @@ export const postResponsibilityRelationship = async (
       return;
     }
 
+    // Check if User node exists
+    const userQuery =
+      'MATCH (u:User) WHERE u.employeeId = $employeeId RETURN u';
+    const userResult = await session.run(userQuery, { employeeId });
+    if (userResult.records.length === 0) {
+      res.status(400).json({ error: 'No User with the given employeeId.' });
+      return;
+    }
+
+    // Check if JobTitle node exists
+    const jobTitleQuery =
+      'MATCH (j:JobTitle) WHERE j.title = $jobTitle RETURN j';
+    const jobTitleResult = await session.run(jobTitleQuery, { jobTitle });
+    if (jobTitleResult.records.length === 0) {
+      res.status(400).json({ error: 'No JobTitle with the given title.' });
+      return;
+    }
+
     const deleteExistingRelationshipsQuery = `
       MATCH (u:User)-[r:BELONGS_TO]->(:ResponsibilityArea), (u)-[r2:BELONGS_TO]->(:CostPool) 
       WHERE u.employeeId = $employeeId
@@ -174,12 +192,53 @@ export const deleteResponsibilityRelationship = async (
       return;
     }
 
+    // Check if User node exists
+    const userQuery =
+      'MATCH (u:User) WHERE u.employeeId = $employeeId RETURN u';
+    const userResult = await session.run(userQuery, { employeeId });
+    if (userResult.records.length === 0) {
+      res.status(400).json({ error: 'No User with the given employeeId.' });
+      return;
+    }
+
+    // Check if JobTitle node exists
+    const jobTitleQuery =
+      'MATCH (j:JobTitle) WHERE j.title = $jobTitle RETURN j';
+    const jobTitleResult = await session.run(jobTitleQuery, { jobTitle });
+    if (jobTitleResult.records.length === 0) {
+      res.status(400).json({ error: 'No JobTitle with the given title.' });
+      return;
+    }
+
+    // Check if the specific relationships exist
+    const relationshipExistQuery = `
+      MATCH (u:User)-[:BELONGS_TO]->(ra:ResponsibilityArea), (u)-[:BELONGS_TO]->(c:CostPool)
+      WHERE u.employeeId = $employeeId AND ra.id = $responsibilityArea AND c.id = $costPoolId
+      RETURN u
+    `;
+    const relationshipExistResult = await session.run(relationshipExistQuery, {
+      employeeId,
+      responsibilityArea,
+      costPoolId,
+    });
+    if (relationshipExistResult.records.length === 0) {
+      res.status(400).json({
+        error:
+          'No existing relationships found for User, ResponsibilityArea, and CostPool with the provided ids.',
+      });
+      return;
+    }
+
     const deleteExistingRelationshipsQuery = `
-      MATCH (u:User)-[r:BELONGS_TO]->(:ResponsibilityArea), (u)-[r2:BELONGS_TO]->(:CostPool) 
-      WHERE u.employeeId = $employeeId
+      MATCH (u:User)-[r:BELONGS_TO]->(ra:ResponsibilityArea), (u)-[r2:BELONGS_TO]->(c:CostPool)
+      WHERE u.employeeId = $employeeId AND ra.id = $responsibilityArea AND c.id = $costPoolId
       DELETE r, r2
     `;
-    await session.run(deleteExistingRelationshipsQuery, { employeeId });
+    await session.run(deleteExistingRelationshipsQuery, {
+      employeeId,
+      responsibilityArea,
+      costPoolId,
+    });
 
     res.status(200).json({
       message: `Relationships deleted for User with employeeId '${employeeId}' and ResponsibilityArea with id '${responsibilityArea}', as well as between User and CostPool with id '${costPoolId}'.`,

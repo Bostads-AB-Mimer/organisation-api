@@ -8,7 +8,7 @@ const router: Router = express.Router();
  * @swagger
  * /api/v1/costpools:
  *   get:
- *     summary: Retrieve a list of properties
+ *     summary: Retrieve a list of costpools
  *     security:
  *       - ApiKeyAuth: []
  *     tags:

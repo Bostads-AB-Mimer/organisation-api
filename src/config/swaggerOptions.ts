@@ -2,9 +2,10 @@ export const getSwaggerOptions = () => ({
   definition: {
     openapi: '3.0.0',
     info: {
-      title: 'My API',
+      title: 'Organisation API',
       version: '1.0.0',
-      description: 'API Information',
+      description:
+        'Simple API that interacts with a Neo4j database. It allows users to perform CRUD operations on the database, retrieving and managing information and relationships betweent the ogranisations users cost pools, responsibility areas, and properties. It performs a scheduled input (cronjob) every 24 hours fetching, adding, updating and deleting selected users from the Microsoft Active directory, trough the Microsoft Graph API.',
     },
     servers: [
       {

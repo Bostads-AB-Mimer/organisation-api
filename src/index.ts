@@ -17,9 +17,16 @@ import { getSwaggerOptions } from './config/swaggerOptions';
 const app = express();
 
 // Swagger setup
-const swaggerOptions = getSwaggerOptions(); // Call the function here
+const swaggerOptions = getSwaggerOptions();
 const swaggerDocs = swaggerJsDoc(swaggerOptions);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
+
+// endpoint for serving Swagger JSON
+
+app.get('/api-docs.json', (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+  res.send(swaggerDocs);
+});
 
 // Middleware
 app.use(express.json());

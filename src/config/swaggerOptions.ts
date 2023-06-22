@@ -18,7 +18,13 @@ export const getSwaggerOptions = () => ({
         UserProperties: {
           type: 'object',
           properties: {
-            createdAt: { type: 'string' },
+            createdAt: {
+              type: 'object',
+              properties: {
+                low: { type: 'number' },
+                high: { type: 'number' },
+              },
+            },
             businessPhones: { type: 'array', items: { type: 'string' } },
             mail: { type: 'string' },
             mobilePhone: { type: 'string' },
@@ -28,35 +34,54 @@ export const getSwaggerOptions = () => ({
             employeeId: { type: 'string' },
             id: { type: 'string' },
             userPrincipalName: { type: 'string' },
-            updatedAt: { type: 'string' },
+            updatedAt: {
+              type: 'object',
+              properties: {
+                low: { type: 'number' },
+                high: { type: 'number' },
+              },
+            },
           },
         },
         JobTitleProperties: {
           type: 'object',
           properties: {
-            createdAt: { type: 'string' },
+            createdAt: {
+              type: 'object',
+              properties: {
+                low: { type: 'number' },
+                high: { type: 'number' },
+              },
+            },
             title: { type: 'string' },
-            updatedAt: { type: 'string' },
+            updatedAt: {
+              type: 'object',
+              properties: {
+                low: { type: 'number' },
+                high: { type: 'number' },
+              },
+            },
           },
         },
         ResponsibilityAreaProperties: {
           type: 'object',
           properties: {
-            id: { type: 'string' },
+            responsibilityAreaNr: { type: 'string' },
           },
         },
         CostPoolProperties: {
           type: 'object',
           properties: {
-            id: { type: 'string' },
+            costPoolNr: { type: 'string' },
           },
         },
         User: {
           type: 'object',
           properties: {
-            id: {
+            neo4jId: {
               type: 'number',
-              description: 'User id',
+              description:
+                'Used by Neo4j internally to identify nodes and relationships. An auto-incrementing number and is not guaranteed to remain consistent over time',
             },
             labels: {
               type: 'array',
@@ -80,12 +105,20 @@ export const getSwaggerOptions = () => ({
         CostPool: {
           type: 'object',
           properties: {
-            id: { type: 'string', description: 'CostPool id' },
+            neo4jId: {
+              type: 'number',
+              description:
+                'Used by Neo4j internally to identify nodes and relationships',
+            },
             label: { type: 'string', description: 'CostPool label' },
             properties: {
               type: 'object',
               properties: {
-                id: { type: 'string', description: 'Properties id' },
+                neo4jId: {
+                  type: 'number',
+                  description:
+                    'Used by Neo4j internally to identify nodes and relationships',
+                },
               },
             },
           },
@@ -93,7 +126,7 @@ export const getSwaggerOptions = () => ({
         Property: {
           type: 'object',
           properties: {
-            id: { type: 'number', description: 'Property id' },
+            neo4jId: { type: 'number', description: 'Property id' },
             property: { type: 'string', description: 'Property code' },
             name: { type: 'string', description: 'Property name' },
             costPool: {
@@ -101,7 +134,11 @@ export const getSwaggerOptions = () => ({
               items: {
                 type: 'object',
                 properties: {
-                  id: { type: 'string', description: 'CostPool id' },
+                  neo4jId: {
+                    type: 'number',
+                    description:
+                      'Used by Neo4j internally to identify nodes and relationships',
+                  },
                 },
               },
               description: 'Array of cost pools',
@@ -111,7 +148,11 @@ export const getSwaggerOptions = () => ({
               items: {
                 type: 'object',
                 properties: {
-                  id: { type: 'string', description: 'Responsibility Area id' },
+                  neo4jId: {
+                    type: 'number',
+                    description:
+                      'Used by Neo4j internally to identify nodes and relationships',
+                  },
                 },
               },
               description: 'Array of responsibility areas',
@@ -121,13 +162,16 @@ export const getSwaggerOptions = () => ({
         ResponsibilityArea: {
           type: 'object',
           properties: {
-            id: { type: 'number', description: 'Responsibility area id' },
+            neo4jId: {
+              type: 'number',
+              description:
+                'Used by Neo4j internally to identify nodes and relationships',
+            },
             responsibilityArea: {
               type: 'string',
               description: 'Responsibility area code',
             },
             employeeId: { type: 'string', description: 'Employee Id' },
-            jobTitle: { type: 'string', description: 'Job Title' },
           },
         },
       },

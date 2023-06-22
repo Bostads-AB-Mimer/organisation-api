@@ -32,9 +32,11 @@ export const getCostPools = async (
     const records = result.records.map((record: Record) => {
       const c = record.get('c');
       return {
-        id: c.properties.id,
+        neo4jId: c.identity.toNumber(),
+        costPoolNr: c.properties.id,
         label: c.labels[0],
-        properties: c.properties,
+
+        //properties: c.properties,
       };
     });
 

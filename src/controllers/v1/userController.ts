@@ -57,12 +57,14 @@ export const getUser = async (
       const ra = record.get('ra');
       const c = record.get('c');
       return {
-        id: u.identity.toNumber(),
+        neo4jId: u.identity.toNumber(),
         labels: u.labels,
         user_properties: u.properties,
         jobtitle_properties: j.properties,
-        responsibilityArea_properties: ra ? ra.properties : {},
-        costPool_properties: c ? c.properties : {},
+        responsibilityArea_properties: ra
+          ? { responsibilityAreaNr: ra.properties.id }
+          : {},
+        costPool_properties: c ? { costPoolNr: c.properties.id } : {},
       };
     });
 

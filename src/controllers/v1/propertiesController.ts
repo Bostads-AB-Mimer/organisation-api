@@ -39,13 +39,15 @@ export const getProperties = async (
     const result = await session.run(baseQuery, queryParams);
     const records = result.records.map((record: Record) => {
       const property = record.get('p');
-      const costPool = record.get('costPools').map((cp: any) => cp.properties);
+      const costPool = record
+        .get('costPools')
+        .map((cp: any) => ({ costPoolNr: cp.properties.id }));
       const responsibilityArea = record
         .get('responsibilityAreas')
-        .map((ra: any) => ra.properties);
+        .map((ra: any) => ({ responsibilityAreaNr: ra.properties.id }));
       return {
-        id: property.identity.toNumber(),
-        property: property.properties.id,
+        neo4jId: property.identity.toNumber(),
+        propertyNr: property.properties.id,
         name: property.properties.name,
         costPool,
         responsibilityArea,

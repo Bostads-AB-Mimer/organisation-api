@@ -49,8 +49,6 @@ const router: Router = express.Router();
  *                 type: 'string'
  *               responsibilityArea:
  *                 type: 'string'
- *               jobTitle:
- *                 type: 'string'
  *     responses:
  *       '201':
  *         description: The created responsibility area relationship.
@@ -74,8 +72,6 @@ const router: Router = express.Router();
  *               employeeId:
  *                 type: 'string'
  *               responsibilityArea:
- *                 type: 'string'
- *               jobTitle:
  *                 type: 'string'
  *     responses:
  *       '204':

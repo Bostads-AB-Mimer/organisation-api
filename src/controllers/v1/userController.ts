@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import neo4j, { Driver, Session, Record } from 'neo4j-driver';
 import connectDB from '../../config/db';
+import { updateUsers } from '../../services/userService';
 
 export const getUser = async (
   req: Request,
@@ -75,5 +76,28 @@ export const getUser = async (
     if (session) {
       session.close();
     }
+  }
+};
+
+export const triggerUserSync = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    setTimeout(async () => {
+      try {
+        await updateUsers();
+        console.log('Users sync completed successfully');
+      } catch (error) {
+        console.log('Error occurred during user sync:', error);
+      }
+    }, 0);
+
+    res
+      .status(200)
+      .json({ message: 'Sync initiated. This can take a few minutes.' });
+  } catch (error) {
+    next(error);
   }
 };

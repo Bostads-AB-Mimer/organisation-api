@@ -9,10 +9,10 @@ import propertiesRoutes from './routes/v1/propertiesRoutes';
 import auth from './middleware/auth';
 import cors from 'cors';
 import { scheduleJobs } from './scheduler/cronJob';
-import { errorHandler } from './middleware/error-handler';
 import swaggerJsDoc from 'swagger-jsdoc';
 import swaggerUi from 'swagger-ui-express';
 import { getSwaggerOptions } from './config/swaggerOptions';
+import { errorHandler } from './middleware/error-handler';
 
 const app = express();
 
@@ -22,7 +22,6 @@ const swaggerDocs = swaggerJsDoc(swaggerOptions);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
 // endpoint for serving Swagger JSON
-
 app.get('/api-docs.json', (req, res) => {
   res.setHeader('Content-Type', 'application/json');
   res.send(swaggerDocs);
@@ -32,24 +31,17 @@ app.get('/api-docs.json', (req, res) => {
 app.use(express.json());
 app.use(cors());
 
-//specify cors values if needed like so:
-/*app.use(
-  cors({
-    origin: 'http://localhost:3000',
-  })
-);*/
-
 // Use the auth middleware
 app.use(auth);
+
+// Use the error handler middleware
+app.use(errorHandler);
 
 // Routes
 app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/costpools', costPoolRoutes);
 app.use('/api/v1/responsibilityareas', responsibilityAreasRoutes);
 app.use('/api/v1/properties', propertiesRoutes);
-
-// Use the error handler middleware
-app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
 

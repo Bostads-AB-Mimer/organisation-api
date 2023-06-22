@@ -1,5 +1,5 @@
 import express, { Request, Response, Router, NextFunction } from 'express';
-import { getUser } from '../../controllers/v1/userController';
+import { getUser, triggerUserSync } from '../../controllers/v1/userController';
 import { errorHandler } from '../../middleware/error-handler';
 
 const router: Router = express.Router();
@@ -33,6 +33,27 @@ const router: Router = express.Router();
 router.get('/', async (req: Request, res: Response, next: NextFunction) => {
   await getUser(req, res, next);
 });
+
+/**
+ * @swagger
+ * /api/v1/users/sync:
+ *   post:
+ *     summary: Trigger users data sync
+ *     tags:
+ *       - Users
+ *     description: Trigger syncing of user data from external source
+ *     security:
+ *       - ApiKeyAuth: []
+ *     responses:
+ *       200:
+ *         description: Successfully triggered data sync
+ */
+router.post(
+  '/sync',
+  async (req: Request, res: Response, next: NextFunction) => {
+    await triggerUserSync(req, res, next);
+  }
+);
 
 // Use error handling middleware
 router.use(errorHandler);

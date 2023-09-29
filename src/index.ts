@@ -13,6 +13,7 @@ import swaggerJsDoc from 'swagger-jsdoc';
 import swaggerUi from 'swagger-ui-express';
 import { getSwaggerOptions } from './config/swaggerOptions';
 import { errorHandler } from './middleware/error-handler';
+import { updateUsers } from './services/userService';
 
 const app = express();
 
@@ -47,5 +48,13 @@ const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, async () => {
   console.log(`Server started on port ${PORT}`);
+
+  try {
+    await updateUsers();
+    console.log('Users updated successfully on start.');
+  } catch (error) {
+    console.error('Failed to update users on start:', error);
+  }
+
   scheduleJobs(); // Schedules the job to run at midnight every day.
 });

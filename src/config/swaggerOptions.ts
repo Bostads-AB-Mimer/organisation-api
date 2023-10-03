@@ -75,6 +75,26 @@ export const getSwaggerOptions = () => ({
             costPoolNr: { type: 'string' },
           },
         },
+        OfficeLocationProperties: {
+          type: 'object',
+          properties: {
+            createdAt: {
+              type: 'object',
+              properties: {
+                low: { type: 'number' },
+                high: { type: 'number' },
+              },
+            },
+            location: { type: 'string' },
+            updatedAt: {
+              type: 'object',
+              properties: {
+                low: { type: 'number' },
+                high: { type: 'number' },
+              },
+            },
+          },
+        },
         User: {
           type: 'object',
           properties: {
@@ -99,6 +119,9 @@ export const getSwaggerOptions = () => ({
             },
             costPool_properties: {
               $ref: '#/components/schemas/CostPoolProperties',
+              officeLocation_properties: {
+                $ref: '#/components/schemas/OfficeLocationProperties',
+              },
             },
           },
         },

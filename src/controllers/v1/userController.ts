@@ -30,20 +30,24 @@ export const getUser = async (
   }
 
   if (costPool) {
+    // Added OPTIONAL MATCH for OfficeLocation
     query = jobTitle
-      ? 'MATCH (u:User)-[:WORKS_AS]->(j:JobTitle) WHERE j.title=$jobTitle MATCH (u)-[rel:BELONGS_TO]->(c:CostPool) WHERE c.id=$costPool OPTIONAL MATCH (u)-[:BELONGS_TO]->(ra:ResponsibilityArea) RETURN u, j, rel, c, ra'
-      : 'MATCH (u:User)-[rel:BELONGS_TO]->(c:CostPool) WHERE c.id=$costPool OPTIONAL MATCH (u)-[:BELONGS_TO]->(ra:ResponsibilityArea) OPTIONAL MATCH (u)-[:WORKS_AS]->(j:JobTitle) RETURN u, j, rel, c, ra';
+      ? 'MATCH (u:User)-[:WORKS_AS]->(j:JobTitle) WHERE j.title=$jobTitle MATCH (u)-[rel:BELONGS_TO]->(c:CostPool) WHERE c.id=$costPool OPTIONAL MATCH (u)-[:BELONGS_TO]->(ra:ResponsibilityArea) OPTIONAL MATCH (u)-[:WORKS_FOR]->(ol:OfficeLocation) RETURN u, j, rel, c, ra, ol'
+      : 'MATCH (u:User)-[rel:BELONGS_TO]->(c:CostPool) WHERE c.id=$costPool OPTIONAL MATCH (u)-[:BELONGS_TO]->(ra:ResponsibilityArea) OPTIONAL MATCH (u)-[:WORKS_AS]->(j:JobTitle) OPTIONAL MATCH (u)-[:WORKS_FOR]->(ol:OfficeLocation) RETURN u, j, rel, c, ra, ol';
     params.costPool = costPool;
   } else if (responsibilityArea) {
+    // Added OPTIONAL MATCH for OfficeLocation
     query = jobTitle
-      ? 'MATCH (u:User)-[:WORKS_AS]->(j:JobTitle) WHERE j.title=$jobTitle MATCH (u)-[:BELONGS_TO]->(ra:ResponsibilityArea) WHERE ra.id=$responsibilityArea OPTIONAL MATCH (ra)-[:BELONGS_TO]->(c:CostPool) RETURN u, j, ra, c'
-      : 'MATCH (u:User)-[:BELONGS_TO]->(ra:ResponsibilityArea) WHERE ra.id=$responsibilityArea OPTIONAL MATCH (ra)-[:BELONGS_TO]->(c:CostPool) OPTIONAL MATCH (u)-[:WORKS_AS]->(j:JobTitle) RETURN u, j, ra, c';
+      ? 'MATCH (u:User)-[:WORKS_AS]->(j:JobTitle) WHERE j.title=$jobTitle MATCH (u)-[:BELONGS_TO]->(ra:ResponsibilityArea) WHERE ra.id=$responsibilityArea OPTIONAL MATCH (ra)-[:BELONGS_TO]->(c:CostPool) OPTIONAL MATCH (u)-[:WORKS_FOR]->(ol:OfficeLocation) RETURN u, j, ra, c, ol'
+      : 'MATCH (u:User)-[:BELONGS_TO]->(ra:ResponsibilityArea) WHERE ra.id=$responsibilityArea OPTIONAL MATCH (ra)-[:BELONGS_TO]->(c:CostPool) OPTIONAL MATCH (u)-[:WORKS_AS]->(j:JobTitle) OPTIONAL MATCH (u)-[:WORKS_FOR]->(ol:OfficeLocation) RETURN u, j, ra, c, ol';
     params.responsibilityArea = responsibilityArea;
   } else {
+    // Added OPTIONAL MATCH for OfficeLocation
     query = jobTitle
-      ? 'MATCH (u:User)-[:WORKS_AS]->(j:JobTitle) WHERE j.title=$jobTitle OPTIONAL MATCH (u)-[:BELONGS_TO]->(ra:ResponsibilityArea) OPTIONAL MATCH (ra)-[:BELONGS_TO]->(c:CostPool) OPTIONAL MATCH (u)-[rel:BELONGS_TO]->(c2:CostPool) RETURN u, j, ra, c, rel, c2'
-      : 'MATCH (u:User) OPTIONAL MATCH (u)-[:WORKS_AS]->(j:JobTitle) OPTIONAL MATCH (u)-[:BELONGS_TO]->(ra:ResponsibilityArea) OPTIONAL MATCH (ra)-[:BELONGS_TO]->(c:CostPool) OPTIONAL MATCH (u)-[rel:BELONGS_TO]->(c2:CostPool) RETURN u, j, ra, c, rel, c2';
+      ? 'MATCH (u:User)-[:WORKS_AS]->(j:JobTitle) WHERE j.title=$jobTitle OPTIONAL MATCH (u)-[:BELONGS_TO]->(ra:ResponsibilityArea) OPTIONAL MATCH (ra)-[:BELONGS_TO]->(c:CostPool) OPTIONAL MATCH (u)-[rel:BELONGS_TO]->(c2:CostPool) OPTIONAL MATCH (u)-[:WORKS_FOR]->(ol:OfficeLocation) RETURN u, j, ra, c, rel, c2, ol'
+      : 'MATCH (u:User) OPTIONAL MATCH (u)-[:WORKS_AS]->(j:JobTitle) OPTIONAL MATCH (u)-[:BELONGS_TO]->(ra:ResponsibilityArea) OPTIONAL MATCH (ra)-[:BELONGS_TO]->(c:CostPool) OPTIONAL MATCH (u)-[rel:BELONGS_TO]->(c2:CostPool) OPTIONAL MATCH (u)-[:WORKS_FOR]->(ol:OfficeLocation) RETURN u, j, ra, c, rel, c2, ol';
   }
+
   try {
     const driver: Driver | undefined = await connectDB();
     if (!driver) {
@@ -57,6 +61,7 @@ export const getUser = async (
       const j = record.get('j');
       const ra = record.get('ra');
       const c = record.get('c');
+      const ol = record.get('ol'); // Added OfficeLocation
       return {
         neo4jId: u.identity.toNumber(),
         labels: u.labels,
@@ -66,6 +71,7 @@ export const getUser = async (
           ? { responsibilityAreaNr: ra.properties.id }
           : {},
         costPool_properties: c ? { costPoolNr: c.properties.id } : {},
+        officeLocation_properties: ol ? ol.properties : {}, // Added OfficeLocation properties
       };
     });
 

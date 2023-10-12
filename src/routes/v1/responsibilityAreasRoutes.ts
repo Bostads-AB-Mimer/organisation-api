@@ -47,7 +47,7 @@ const router: Router = express.Router();
  *             properties:
  *               employeeId:
  *                 type: 'string'
- *               responsibilityArea:
+ *               responsibilityAreaNr:  
  *                 type: 'string'
  *     responses:
  *       '201':
@@ -71,7 +71,7 @@ const router: Router = express.Router();
  *             properties:
  *               employeeId:
  *                 type: 'string'
- *               responsibilityArea:
+ *               responsibilityAreaNr:  
  *                 type: 'string'
  *     responses:
  *       '204':

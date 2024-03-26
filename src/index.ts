@@ -50,7 +50,7 @@ app.listen(PORT, async () => {
   console.log(`Server started on port ${PORT}`);
 
   try {
-    await updateUsers();
+    await updateUsers(); //updates user on start
     console.log('Users updated successfully on start.');
   } catch (error) {
     console.error('Failed to update users on start:', error);
